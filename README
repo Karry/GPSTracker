@@ -1,0 +1,9 @@
+
+
+ * build:
+ 
+	mkdir mybuild
+	cd mybuild
+	qmake-qt4 ..
+	make -j 4
+	
