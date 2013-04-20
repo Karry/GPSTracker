@@ -1,4 +1,6 @@
-
+Harmattan GPSTracker is a simple application for saving GPS logs on Harmattan devices (Nokia N9, N950). 
+Saved logs can be exported later to GPX or KML file directly on phone. It can be used for geotaging 
+photos from crusades or improving OpenStreetMap.org maps... 
 
  * build:
  
