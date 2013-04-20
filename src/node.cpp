@@ -43,6 +43,7 @@ Node::Node( double latitude,
 }
 
 Node::Node(const Node &original):
+    QObject(NULL),
     latitude(original.latitude),
     longitude(original.longitude),
     altitude(original.altitude),
