@@ -88,6 +88,8 @@ public:
     Track(Storage *storage, QSqlRecord rec);
     virtual ~Track();
     bool close();
+    void deleteTrack();
+    void rename(QString newName);
     double getLength();
     QDateTime getStartTimeUtc();
     QDateTime getEndTimeUtc();

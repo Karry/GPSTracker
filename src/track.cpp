@@ -68,6 +68,21 @@ bool Track::close(){
     return false;
 }
 
+void Track::deleteTrack(){
+    if (_open){
+        this->close();
+    }
+    _storage->deleteTrack(_id);
+}
+
+void Track::rename(QString newName){
+    if (newName == _name)
+        return;
+
+    _name = newName;
+    _storage->renameTrack(_id, newName);
+}
+
 void Track::onSatellitesInUseUpdated ( const QList<QGeoSatelliteInfo> & satellites ){
     Q_UNUSED(satellites);
 }

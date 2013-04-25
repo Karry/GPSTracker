@@ -49,10 +49,14 @@ public:
 
 Q_SIGNALS:
     void trackCreated(Track *);
+    void trackDeleted(Track *);
+    void trackChanged(Track *);
 
 private:
     Settings *getSettings();
     bool closeTrack(int id);
+    bool deleteTrack(int id);
+    bool renameTrack(int id, QString newName);
     bool initDatabase();
     bool createTables();
     void loadInfo();

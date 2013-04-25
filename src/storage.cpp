@@ -260,7 +260,68 @@ bool Storage::closeTrack(int id){
     return true;
 }
 
+bool Storage::deleteTrack(int id){
+    Track *t = getTrack(id);
+    if (t == NULL)
+        return false;
+
+    QSqlQuery sql(_db);
+    sql.prepare("DELETE FROM tracks WHERE id = :id");
+    sql.bindValue(":id", id);
+    sql.exec();
+
+    qDebug()<< "Storage: " << sql.executedQuery() << sql.boundValues();
+
+    if (sql.lastError().isValid()){
+        qWarning() << "Storage: deleting track failed" << sql.lastError();
+        return false;
+    }
+
+    //QSqlQuery sql2(_db);
+    sql.prepare("DELETE FROM nodes WHERE track_id = :id");
+    sql.bindValue(":id", id);
+    sql.exec();
+
+    qDebug()<< "Storage: " << sql.executedQuery() << sql.boundValues();
+
+    if (sql.lastError().isValid()){
+        qWarning() << "Storage: deleting track failed" << sql.lastError();
+        return false;
+    }
+
+    _allTracks.removeOne(t);
+    emit trackDeleted(t);
+    t->deleteLater();
+    return true;
+}
+
+bool Storage::renameTrack(int id, QString newName){
+    Track *t = getTrack(id);
+    if (t == NULL)
+        return false;
+
+    QSqlQuery sql(_db);
+    sql.prepare("UPDATE tracks SET name = :name WHERE id = :id");
+    sql.bindValue(":name", QVariant(newName));
+    sql.bindValue(":id", id);
+    sql.exec();
+
+    qDebug()<< "Storage: " << sql.executedQuery() << sql.boundValues();
+
+    if (sql.lastError().isValid()){
+        qWarning() << "Storage: deleting track failed" << sql.lastError();
+        return false;
+    }
+
+    emit trackChanged(t);
+    return true;
+}
+
 bool Storage::addNode(int trackId, Node node){
+    Track *t = getTrack(trackId);
+    if (t == NULL)
+        return false;
+
     /*
     const double latitude, const double longitude, const int altitude,
                           const int horizAccuracy, const int vertAccuracy, const double distanceFromPrev,
@@ -292,6 +353,8 @@ bool Storage::addNode(int trackId, Node node){
         qWarning() << "Storage: add node failed" << sql.lastError();
         return false;
     }
+
+    emit trackChanged(t);
     return true;
 }
 

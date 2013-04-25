@@ -131,30 +131,52 @@ Page {
         fadeIntensity: 0.0
     }
 
-    // Create a simple "Hello World"-Dialog
+    Dialog{
+        id: confirmDialog
+
+        content:Rectangle {
+            id: confirmDialogContent
+            height: 120
+            width: parent.width
+            color: "transparent"
+
+            Text {
+                id: confirmDialogTitle
+                text: qsTr("Realy?")
+                color: UI.COLOR_INVERTED_FOREGROUND
+                anchors.top: parent.top
+                wrapMode: Text.WordWrap
+                font.pixelSize: 28
+            }
+        }
+        buttons: Grid {
+            columns: 1
+            rows: 2
+            spacing: 10
+            Button {id: confirmBtn; text: qsTr("OK"); onClicked: confirmDialog.accept()}
+            Button {id: rejectBtn;  text: qsTr("Cancel"); onClicked: confirmDialog.reject()}
+        }
+        onAccepted: {
+            console.log("delete track " + selectedTrackId);
+            core.deleteTrack(selectedTrackId);
+        }
+    }
 
     Dialog {
         id: exportFileDialog
 
-        //property variant callback;
         property string format: "gpx";
-
-        title: Text {
-            id: title
-            text: qsTr("Name of exported file:")
-        }
 
         content:Rectangle {
             id: name
             height: 120
             width: parent.width
             color: "transparent"
-            //color: "blue"
 
             Text {
                 id: queryText
                 text: qsTr("Export file name:")
-
+                font.pixelSize: 22
                 color: UI.COLOR_INVERTED_FOREGROUND
                 anchors.top: parent.top
             }
@@ -177,7 +199,9 @@ Page {
                         margins: 5
                     }
                     text: "file name"
-                    //color: "green"
+                    onActiveFocusChanged: {
+                       if (!exportedFileName.activeFocus) exportedFileName.closeSoftwareInputPanel();
+                    }
                 }
             }
         }
@@ -192,11 +216,82 @@ Page {
         onStatusChanged: {
             if (status === DialogStatus.Opening){
                 exportedFileName.text = selectedTrackName;
+                exportedFileName.forceActiveFocus();
+            }
+            if (status === DialogStatus.Closing){
+                exportedFileName.focus = false;
             }
         }
 
         onAccepted: {
             core.exportTrack(selectedTrackId, exportedFileName.text , format);
+        }
+    }
+    Dialog {
+        id: renameDialog
+
+        property string format: "gpx";
+
+        content:Rectangle {
+            id: renameDialogContent
+            height: 120
+            width: parent.width
+            color: "transparent"
+
+            Text {
+                text: qsTr("New track name:")
+                font.pixelSize: 22
+                color: UI.COLOR_INVERTED_FOREGROUND
+                anchors.top: parent.top
+            }
+            Rectangle{
+                anchors{
+                    horizontalCenter:parent.horizontalCenter
+                    margins: 20
+                    bottom: parent.bottom
+                }
+                width: parent.width
+                height: 40
+                //color: "grey"
+                color: UI.COLOR_BACKGROUND
+                TextInput {
+                    id: trackName
+                    font.pixelSize: 22
+                    anchors{
+                        centerIn: parent
+                        fill: parent
+                        margins: 5
+                    }
+                    text: "file name"
+
+                    onAccepted: renameDialog.accept();
+                    onActiveFocusChanged: {
+                       if (!trackName.activeFocus) trackName.closeSoftwareInputPanel();
+                    }
+                }
+            }
+        }
+
+        buttons: Grid {
+            columns: 1
+            rows: 2
+            spacing: 10
+            Button {text: qsTr("Rename"); onClicked: renameDialog.accept()}
+            Button {text: qsTr("Cancel"); onClicked: renameDialog.reject()}
+        }
+        onStatusChanged: {
+            if (status === DialogStatus.Opening){
+                trackName.text = selectedTrackName;
+
+                trackName.forceActiveFocus();
+            }
+            if (status === DialogStatus.Closing){
+                trackName.focus = false;
+            }
+        }
+
+        onAccepted: {
+            core.renameTrack(selectedTrackId, trackName.text);
         }
     }
 
@@ -222,20 +317,20 @@ Page {
                     exportFileDialog.open();
                 }
             }
-            /*
             MenuItem {
                 text: qsTr("Rename track")
                 onClicked: {
-                    console.log("TODO");
+                    renameDialog.open();
                 }
             }
             MenuItem {
                 text: qsTr("Delete track")
-                onClicked: {
-                    console.log("TODO");
+                onClicked: {                    
+                    confirmDialogTitle.text = qsTr("Do you want delete track \n%1 ?").arg(selectedTrackName);
+                    console.log(confirmDialogTitle.text);
+                    confirmDialog.open();
                 }
             }
-            */
         }
         onStatusChanged: {
             if (status === DialogStatus.Closed) {

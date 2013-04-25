@@ -71,6 +71,8 @@ public:
     void changeTracking(bool tracking);
     Q_INVOKABLE void loadTracksModel();
     Q_INVOKABLE void exportTrack(int trackId, QString fileName, QString format);
+    Q_INVOKABLE void renameTrack(int trackId, QString newName);
+    Q_INVOKABLE void deleteTrack(int trackId);
 
 Q_SIGNALS:
     void positionUpdated(QDateTime timestamp,
@@ -79,7 +81,7 @@ Q_SIGNALS:
                          QVariant attributes);
     void compassUpdate(const qreal azimut);
     void trackingChanged(bool tracking);
-    void tracksModelLoaded(TracksModel *model); // todo write a model
+    void tracksModelLoaded(TracksModel *model);
 
 public
     Q_SLOTS:
@@ -87,6 +89,7 @@ public
     void onSatellitesInUseUpdated ( const QList<QGeoSatelliteInfo> & satellites );
     void onSatellitesInViewUpdated ( const QList<QGeoSatelliteInfo> & satellites );
     void onCompassChanged();
+    void onTrackDeleted(Track *track);
 
 private:
     void onViewReady();

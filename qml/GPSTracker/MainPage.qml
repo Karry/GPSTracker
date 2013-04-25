@@ -102,6 +102,7 @@ Page {
         }
         onTrackingChanged:{
             trackInfoWrapper.visible = tracking;
+            trackingSwitch.checked = tracking;
             refreshTrackInfo();
         }
     } 
@@ -167,7 +168,7 @@ Page {
             anchors.rightMargin: spacing
 
             Item {
-                id: trackingSwitch
+                id: trackingSwitchWrapper
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width - 2*parent.spacing
 
@@ -180,6 +181,7 @@ Page {
                 }
 
                 Switch {
+                    id: trackingSwitch
                     anchors.right: parent.right
                     onCheckedChanged: {
                         if ((checked ? 1 : 0) != core.tracking) {

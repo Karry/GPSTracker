@@ -33,6 +33,8 @@ TracksModel::TracksModel(Storage *storage):
 
     _tracks =  _storage->getAllTracks();
     connect(_storage, SIGNAL(trackCreated(Track*)), this, SLOT(onTrackCreated(Track *)));
+    connect(_storage, SIGNAL(trackDeleted(Track*)), this, SLOT(onTrackDeleted(Track *)));
+    connect(_storage, SIGNAL(trackChanged(Track*)), this, SLOT(onTrackChanged(Track *)));
 
     setRoleNames(roles);
 }
@@ -46,6 +48,24 @@ void TracksModel::onTrackCreated(Track *track){
     this->beginInsertRows(QModelIndex(), 0, 0);
     _tracks.prepend(track);
     this->endInsertRows();
+}
+
+void TracksModel::onTrackDeleted(Track *track){
+    int index = _tracks.indexOf(track);
+    if (index<0)
+        return;
+
+    this->beginRemoveRows(QModelIndex(), index, index);
+    _tracks.removeAt(index);
+    this->endRemoveRows();
+}
+
+void TracksModel::onTrackChanged(Track *track){
+    int index = _tracks.indexOf(track);
+    if (index<0)
+        return;
+
+    emit dataChanged( createIndex(index, 0, 0), createIndex(index, 0, 0) ) ;
 }
 
 int TracksModel::rowCount(const QModelIndex &parent ) const {

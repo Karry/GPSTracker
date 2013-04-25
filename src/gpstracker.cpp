@@ -21,8 +21,8 @@
 #include <QFile>
 #include <QDir>
 #include <QtCore/qmath.h>
-//#include <qmath.h>
 #include <qnumeric.h>
+#include <QInputContext>
 
 // sql
 #include <QSqlDatabase>
@@ -102,6 +102,8 @@ bool GpsTracker::init(){
 
     if (!this->_storage->init())
         return false;
+
+    connect(_storage, SIGNAL(trackDeleted(Track*)), this, SLOT(onTrackDeleted(Track *)));
 
     // init QML viewer
     qRegisterMetaType<QGeoPositionInfo>("QGeoPositionInfo");
@@ -210,6 +212,13 @@ void GpsTracker::onQmlStatusChanged(QDeclarativeView::Status status){
 
 void GpsTracker::onViewReady(){
     // fun began
+}
+
+void GpsTracker::onTrackDeleted(Track *track){
+    if (track == _openedTrack){
+        qWarning() << "GpsTracker: opened track was deleted, stop tracking";
+        changeTracking(false);
+    }
 }
 
 void GpsTracker::onSatellitesInUseUpdated ( const QList<QGeoSatelliteInfo> & satellites ){
@@ -376,6 +385,30 @@ void GpsTracker::exportTrack(int trackId, QString fileName, QString format){
     }else{
         qWarning() << "GpsTracker: opening file" << file.fileName() << "for writing failed!";
     }
+}
+
+void GpsTracker::renameTrack(int trackId, QString newName){
+    qDebug() << "GpsTracker: export track (" << trackId << "," << newName << ")";
+
+    Track *track = _storage->getTrack(trackId);
+    if (track == NULL){
+        qWarning() << "GpsTracker: Track id" << trackId << "doesn't exists";
+        return;
+    }
+
+    track->rename(newName);
+}
+
+void GpsTracker::deleteTrack(int trackId){
+    qDebug() << "GpsTracker: delete track (" << trackId << ")";
+
+    Track *track = _storage->getTrack(trackId);
+    if (track == NULL){
+        qWarning() << "GpsTracker: Track id" << trackId << "doesn't exists";
+        return;
+    }
+
+    track->deleteTrack();
 }
 
 void GpsTracker::exportTrackToGPX(QTextStream *out, Track *track){

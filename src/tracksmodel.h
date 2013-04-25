@@ -51,6 +51,8 @@ public:
 private
 Q_SLOTS:
     void onTrackCreated(Track *track);
+    void onTrackDeleted(Track *track);
+    void onTrackChanged(Track *track);
 
 private:
     Storage *_storage;
