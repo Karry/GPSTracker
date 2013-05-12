@@ -57,8 +57,8 @@ Page {
                     (attributes.horizontalAccuracy!==undefined? " (±" + attributes.horizontalAccuracy + " m)":"");
             altitudeInfo.value = (altitude == undefined || (altitude+"") == "NaN")
                     ? "?"
-                    : (Math.round( altitude ) +
-                        (attributes.verticalAccuracy !==undefined? " (±" + attributes.verticalAccuracy + ")":""));
+                    : ( settings.formatSmallDistance( altitude ) +
+                        (attributes.verticalAccuracy !==undefined? " (±" + settings.formatSmallDistance(attributes.verticalAccuracy, false, false) + ")":""));
             satelitesInfo.value = countSatellitesInView + "/" + countSatellitesInUse;
             speedInfo.value = attributes.groundSpeed === undefined? "?" : attributes.groundSpeed;
             lastUpdateInfo.value = timestamp;

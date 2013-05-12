@@ -26,6 +26,9 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#define METRIC_UNITS "metric"
+#define IMPERIAL_UNITS "imperial"
+
 class Settings: public QObject{
     Q_OBJECT
     Q_DISABLE_COPY(Settings)
@@ -34,6 +37,10 @@ class Settings: public QObject{
                READ isNightViewMode
                WRITE setNightViewMode
                NOTIFY nightViewModeChanged)
+    Q_PROPERTY(QString units
+               READ getUnits
+               WRITE setUnits
+               NOTIFY unitsChanged)
     Q_PROPERTY(double maximumAccuracy
                READ getMaximumAccuracy
                WRITE setMaximumAccuracy)
@@ -44,9 +51,13 @@ public:
     bool init();
     bool store();
     double getMaximumAccuracy();
+    Q_INVOKABLE QString formatSmallDistance(int distanceM);
+    Q_INVOKABLE QString formatSmallDistance(int distanceM, bool canNegative);
+    Q_INVOKABLE QString formatSmallDistance(int distanceM, bool canNegative, bool units);
 
 Q_SIGNALS:
     void nightViewModeChanged(bool mode);
+    void unitsChanged(QString units);
 
 private:
     bool isNightViewMode();
@@ -54,12 +65,15 @@ private:
     bool initDatabase();
     bool createSettingsTable();
     void setMaximumAccuracy(double d);
+    QString getUnits();
+    void setUnits(QString units);
     QVariant loadProperty(QString name);
 
 private:
     QSqlDatabase _db;
     bool _nightViewMode;
     double _maximumAccuracy;
+    QString _units;
 };
 
 #endif // SETTINGS_H

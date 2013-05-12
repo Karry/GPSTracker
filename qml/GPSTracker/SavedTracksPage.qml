@@ -295,7 +295,7 @@ Page {
         }
     }
 
-    Menu {
+    ContextMenu {
         id: trackMenu
 
         property int trackId;

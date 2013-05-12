@@ -92,7 +92,24 @@ Page {
                     checked: settings.nightViewMode == 1
                     anchors.verticalCenter: parent.verticalCenter
                 }
+
             }
+            Item{
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: unitsSelection.height
+
+                SelectionButton{
+                    id: unitsSelection
+                    titleText: qsTr("Units")
+                    subTitleText: (settings.units === "imperial" ? qsTr("Imperial") :  qsTr("Metric"))
+                    onClicked: {
+                        unitsSelectionDialog.selectedIndex = (settings.units === "imperial"? 1: 0)
+                        unitsSelectionDialog.open()
+                    }
+                }
+            }
+
         }
         /*
         Column {
@@ -110,5 +127,30 @@ Page {
 
     ScrollDecorator {
         flickableItem: pageFlickableContent
+    }
+
+    // Create a selection dialog with a title and list elements to choose from.
+    SelectionDialog {
+        id: unitsSelectionDialog
+        titleText: "Preffered units"
+        selectedIndex: 0
+
+        model: ListModel {
+            ListElement { name: "Metric" }
+            ListElement { name: "Imperial" }
+        }
+
+        // TODO: translate
+        /*
+        delegate: Text {
+            text: qsTr(name)
+          }
+          */
+        onSelectedIndexChanged: {
+            if (selectedIndex === 0)
+                settings.units = "metric"
+            if (selectedIndex === 1)
+                settings.units = "imperial"
+        }
     }
 }

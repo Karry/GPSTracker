@@ -33,7 +33,8 @@
 
 Settings::Settings(QObject *parent):
     QObject(parent),
-    _maximumAccuracy(30){
+    _maximumAccuracy(30),
+    _units("metric"){
 
 }
 
@@ -196,9 +197,11 @@ bool Settings::isNightViewMode(){
 }
 
 void Settings::setNightViewMode(bool n){
-    _nightViewMode = n;
-    store();
-    emit nightViewModeChanged(_nightViewMode);
+    if (_nightViewMode != n){
+        _nightViewMode = n;
+        store();
+        emit nightViewModeChanged(_nightViewMode);
+    }
 }
 
 double Settings::getMaximumAccuracy(){
@@ -209,3 +212,42 @@ void Settings::setMaximumAccuracy(double d){
     _maximumAccuracy = d;
     store();
 }
+
+QString Settings::getUnits(){
+    return _units;
+}
+
+void Settings::setUnits(QString units){
+    if (units != METRIC_UNITS &&  units != IMPERIAL_UNITS){
+        qWarning() << "Settings: units is not correct (" << units << ")";
+        return;
+    }
+    if (_units != units){
+        _units = units;
+        store();
+        emit unitsChanged(units);
+    }
+}
+
+QString Settings::formatSmallDistance(int distanceM){
+    return formatSmallDistance(distanceM, true, true);
+}
+
+QString Settings::formatSmallDistance(int distanceM, bool canNegative){
+    return formatSmallDistance(distanceM, canNegative, true);
+}
+
+QString Settings::formatSmallDistance(int distanceM, bool canNegative, bool units){
+    if ((distanceM < 0) && (!canNegative))
+        return "?";
+
+    if (getUnits() == IMPERIAL_UNITS){
+        /* FIXME: I'am not sure that it is right */
+        return  QString("%1").arg(qRound( (double)distanceM * 3.2808 )) + (units? " ft": "");
+    }
+    if (getUnits() == METRIC_UNITS){
+        return QString("%1").arg(distanceM) + (units ? " m": "");
+    }
+    return QString("%1").arg(distanceM) + " m";
+}
+
