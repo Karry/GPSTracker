@@ -109,6 +109,27 @@ Page {
                     }
                 }
             }
+            Item{
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: posFormatSelection.height
+
+                SelectionButton{
+                    id: posFormatSelection
+                    titleText: qsTr("Position format")
+                    subTitleText: (settings.posFormat === "degrees" ?  '49°08\'06.22"' : (settings.posFormat === "geocaching" ? '49°08.104\'':'49.135060'))
+
+                    onClicked: {
+                        posFormatSelectionDialog.selectedIndex = (settings.posFormat === "degrees" ? 0 : (settings.posFormat === "geocaching" ? 1:2))
+                        posFormatSelectionDialog.open()
+                    }
+                }
+            }
+            /*
+            #define POS_FORMAT_DEGREES "degrees"
+            #define POS_FORMAT_GEOCACHING "geocaching"
+            #define POS_FORMAT_NUMERIC "numeric"
+            */
 
         }
         /*
@@ -132,7 +153,7 @@ Page {
     // Create a selection dialog with a title and list elements to choose from.
     SelectionDialog {
         id: unitsSelectionDialog
-        titleText: "Preffered units"
+        titleText: qsTr("Preffered units")
         selectedIndex: 0
 
         model: ListModel {
@@ -151,6 +172,26 @@ Page {
                 settings.units = "metric"
             if (selectedIndex === 1)
                 settings.units = "imperial"
+        }
+    }
+    SelectionDialog {
+        id: posFormatSelectionDialog
+        titleText: qsTr("Position format")
+        selectedIndex: 0
+
+        model: ListModel {
+            ListElement { name: '49°08\'06.22"' }
+            ListElement { name: '49°08.104\'' }
+            ListElement { name: '49.135060' }
+        }
+
+        onSelectedIndexChanged: {
+            if (selectedIndex === 0)
+                settings.posFormat = "degrees"
+            if (selectedIndex === 1)
+                settings.posFormat = "geocaching"
+            if (selectedIndex === 2)
+                settings.posFormat = "numeric"
         }
     }
 }

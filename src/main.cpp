@@ -17,13 +17,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <QTextCodec>
 #include <QApplication>
 #include <QDebug>
+#include <QLocale>
 
 #include "qmlapplicationviewer.h"
 #include "gpstracker.h"
 
 Q_DECL_EXPORT int main(int argc, char *argv[]){
+    // Use utf8 for QString (Without this, some special characters in QString from C++ are not correctly displayed in QML)
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("utf8"));
 
     QScopedPointer<QApplication> app(createApplication(argc, argv));
 

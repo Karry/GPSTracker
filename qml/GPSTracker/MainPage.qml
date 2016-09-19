@@ -28,9 +28,9 @@ Page {
     property string title : "GPS Tracker"   
 
     function refreshTrackInfo(){
-        if (  (typeof track)!="undefined" && track!=null ){
+        if (  (typeof track) !== "undefined" && track != null ){
             trackNameInfo.value = track.name;
-            trackLengthInfo.value = track.length+" m";
+            trackLengthInfo.value = settings.formatDistance( track.length );
             trackNodesInfo.value = track.nodes;
         }
     }
@@ -53,15 +53,24 @@ Page {
             */
 
             // TODO: format values by config and use predefined units (metrics or imperial)
-            positionInfo.value = latitude + " " + longitude +
-                    (attributes.horizontalAccuracy!==undefined? " (±" + attributes.horizontalAccuracy + " m)":"");
-            altitudeInfo.value = (altitude == undefined || (altitude+"") == "NaN")
+            positionInfo.value = settings.formatPosition(latitude, longitude);
+
+            horizErrorInfo.value = ((typeof attributes.horizontalAccuracy) !== undefined
+                                    ? settings.formatSmallDistance(attributes.horizontalAccuracy)
+                                    : "");
+
+            altitudeInfo.value = ((typeof altitude) === "undefined" || (altitude+"") === "NaN")
                     ? "?"
                     : ( settings.formatSmallDistance( altitude ) +
-                        (attributes.verticalAccuracy !==undefined? " (±" + settings.formatSmallDistance(attributes.verticalAccuracy, false, false) + ")":""));
+                        ((typeof attributes.verticalAccuracy) !== "undefined"
+                         ? " (±" + settings.formatSmallDistance(attributes.verticalAccuracy, false, false) + ")"
+                         : ""));
+
             satelitesInfo.value = countSatellitesInView + "/" + countSatellitesInUse;
-            speedInfo.value = attributes.groundSpeed === undefined? "?" : attributes.groundSpeed;
-            lastUpdateInfo.value = timestamp;
+
+            speedInfo.value = (typeof attributes.groundSpeed) === "undefined" ? "?" : settings.formatSpeed(attributes.groundSpeed);
+
+            lastUpdateInfo.value =  Qt.formatDateTime(timestamp, "hh:mm:ss");
 
             refreshTrackInfo();
         }
@@ -197,7 +206,7 @@ Page {
                 id: infoWrapper
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width - 2*parent.spacing
-                height: 5.5 * 60
+                height: 6.5 * 60
 
                 InfoItem{
                     id: positionInfo
@@ -208,8 +217,15 @@ Page {
                     value: "XX.XX N XX.XX W"
                 }
                 InfoItem{
-                    id: altitudeInfo
+                    id: horizErrorInfo
                     anchors.top: positionInfo.bottom
+                    height: 60
+                    label: qsTr("ERROR")
+                    value: ""
+                }
+                InfoItem{
+                    id: altitudeInfo
+                    anchors.top: horizErrorInfo.bottom
                     height: 60
                     label: qsTr("ALTITUDE")
                     value: ""

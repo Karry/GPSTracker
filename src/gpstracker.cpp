@@ -23,6 +23,7 @@
 #include <QtCore/qmath.h>
 #include <qnumeric.h>
 #include <QInputContext>
+#include <QDesktopServices>
 
 // sql
 #include <QSqlDatabase>
@@ -357,8 +358,6 @@ void GpsTracker::loadTracksModel(){
 }
 
 void GpsTracker::exportTrack(int trackId, QString fileName, QString format){
-    qDebug() << "GpsTracker: export track (" << trackId << "," << fileName << "," << format << ")";
-
     if (format != "kml" && format != "gpx"){
         qWarning() << "GpsTracker: unsuported export format" << format;
         return;
@@ -370,7 +369,11 @@ void GpsTracker::exportTrack(int trackId, QString fileName, QString format){
         return;
     }
 
-    QFile file(fileName+"."+format);
+
+
+    QFile file( QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation) +  QDir::separator() + fileName + "." + format);
+    qDebug() << "GpsTracker: export track (" << trackId << "," << fileName << "," << format << ", " << file.fileName() << ")";
+
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream out(&file);
 

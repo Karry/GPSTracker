@@ -26,8 +26,12 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#define METRIC_UNITS "metric"
-#define IMPERIAL_UNITS "imperial"
+#define UNITS_METRIC "metric"
+#define UNITS_IMPERIAL "imperial"
+
+#define POS_FORMAT_GEOCACHING "geocaching"
+#define POS_FORMAT_NUMERIC "numeric"
+#define POS_FORMAT_DEGREES "degrees"
 
 class Settings: public QObject{
     Q_OBJECT
@@ -41,6 +45,10 @@ class Settings: public QObject{
                READ getUnits
                WRITE setUnits
                NOTIFY unitsChanged)
+    Q_PROPERTY(QString posFormat
+               READ getPosFormat
+               WRITE setPosFormat
+               NOTIFY posFormatChanged)
     Q_PROPERTY(double maximumAccuracy
                READ getMaximumAccuracy
                WRITE setMaximumAccuracy)
@@ -51,13 +59,19 @@ public:
     bool init();
     bool store();
     double getMaximumAccuracy();
-    Q_INVOKABLE QString formatSmallDistance(int distanceM);
-    Q_INVOKABLE QString formatSmallDistance(int distanceM, bool canNegative);
-    Q_INVOKABLE QString formatSmallDistance(int distanceM, bool canNegative, bool units);
+    Q_INVOKABLE QString formatSmallDistance(int distanceM, bool canNegative = true, bool units = true);
+    Q_INVOKABLE QString formatDistance(double distanceM, bool canNegative = true);
+    Q_INVOKABLE QString formatPosition(double latitude, double longitude);
+    Q_INVOKABLE QString formatLatitude(double degree);
+    Q_INVOKABLE QString formatLongitude(double degree);
+    Q_INVOKABLE QString formatDegree(double degree);
+    Q_INVOKABLE QString formatDegreeLikeGeocaching(double degree);
+    Q_INVOKABLE QString formatSpeed(double speeedMPS);
 
 Q_SIGNALS:
     void nightViewModeChanged(bool mode);
     void unitsChanged(QString units);
+    void posFormatChanged(QString posFormat);
 
 private:
     bool isNightViewMode();
@@ -68,12 +82,16 @@ private:
     QString getUnits();
     void setUnits(QString units);
     QVariant loadProperty(QString name);
+    QString getPosFormat();
+    void setPosFormat(QString posFormat);
+    QString toFixed(double radix, int decimals);
 
 private:
     QSqlDatabase _db;
     bool _nightViewMode;
     double _maximumAccuracy;
     QString _units;
+    QString _posFormat;
 };
 
 #endif // SETTINGS_H

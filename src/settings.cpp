@@ -28,13 +28,17 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 
+#include <math.h>       /* floor */
+
 #include "settings.h"
+
 
 
 Settings::Settings(QObject *parent):
     QObject(parent),
     _maximumAccuracy(30),
-    _units("metric"){
+    _units(QLocale::system().measurementSystem() == QLocale::MetricSystem ? UNITS_METRIC: UNITS_IMPERIAL),
+    _posFormat(POS_FORMAT_DEGREES){
 
 }
 
@@ -218,7 +222,7 @@ QString Settings::getUnits(){
 }
 
 void Settings::setUnits(QString units){
-    if (units != METRIC_UNITS &&  units != IMPERIAL_UNITS){
+    if (units != UNITS_METRIC &&  units != UNITS_IMPERIAL){
         qWarning() << "Settings: units is not correct (" << units << ")";
         return;
     }
@@ -229,25 +233,107 @@ void Settings::setUnits(QString units){
     }
 }
 
-QString Settings::formatSmallDistance(int distanceM){
-    return formatSmallDistance(distanceM, true, true);
+QString Settings::getPosFormat(){
+   return _posFormat;
 }
 
-QString Settings::formatSmallDistance(int distanceM, bool canNegative){
-    return formatSmallDistance(distanceM, canNegative, true);
+void Settings::setPosFormat(QString posFormat){
+    if (posFormat != POS_FORMAT_DEGREES && posFormat != POS_FORMAT_GEOCACHING && posFormat != POS_FORMAT_NUMERIC){
+        qWarning() << "Settings: possition format is not correct (" << posFormat << ")";
+        return;
+    }
+    if (_posFormat != posFormat){
+        _posFormat = posFormat;
+        store();
+        emit posFormatChanged(posFormat);
+    }
 }
 
 QString Settings::formatSmallDistance(int distanceM, bool canNegative, bool units){
     if ((distanceM < 0) && (!canNegative))
         return "?";
 
-    if (getUnits() == IMPERIAL_UNITS){
+    if (getUnits() == UNITS_IMPERIAL){
         /* FIXME: I'am not sure that it is right */
         return  QString("%1").arg(qRound( (double)distanceM * 3.2808 )) + (units? " ft": "");
     }
-    if (getUnits() == METRIC_UNITS){
+    if (getUnits() == UNITS_METRIC){
         return QString("%1").arg(distanceM) + (units ? " m": "");
     }
     return QString("%1").arg(distanceM) + " m";
 }
 
+QString Settings::formatDistance(double distanceM, bool canNegative){
+    if ((distanceM < 0) && (!canNegative))
+        return "?";
+
+    if (_units == UNITS_METRIC){
+            double tmp = (distanceM / 1000);
+            return (tmp >= 10 ? QString("%1").arg(qRound(tmp)) : toFixed(tmp, 1)) + " km";
+    }
+    if (_units == UNITS_IMPERIAL){
+            /* FIXME: I'am not sure that it is right */
+            double tmp = (distanceM / 1609.344);
+            return (tmp >= 10 ? QString("%1").arg(qRound(tmp)) : toFixed(tmp, 1)) + " miles";
+    }
+
+    return QString("%1").arg(qRound(distanceM)) + " m";
+}
+
+QString Settings::formatPosition(double latitude, double longitude){
+    return formatLatitude(latitude) + "    " + formatLongitude(longitude);
+}
+
+QString Settings::formatLatitude(double degree){
+    if (_posFormat == POS_FORMAT_NUMERIC)
+        return toFixed(degree, 5);
+
+    if (_posFormat == POS_FORMAT_GEOCACHING)
+        return QString(degree > 0? "N" : "S") + " " + formatDegreeLikeGeocaching( qAbs(degree) );
+
+    return formatDegree( qAbs(degree) ) + (degree > 0 ? "N" : "S");
+}
+
+QString Settings::formatLongitude(double degree){
+    if (_posFormat == POS_FORMAT_NUMERIC)
+        return toFixed(degree, 5);
+
+    if (_posFormat == POS_FORMAT_GEOCACHING)
+        return QString(degree > 0 ? "E" : "W") + " " + formatDegreeLikeGeocaching( qAbs(degree) );
+
+    return formatDegree( qAbs(degree) ) + (degree > 0 ? "E" : "W");
+}
+
+QString Settings::formatDegree(double degree){
+    double minutes = (degree - floor(degree)) * 60;
+    double seconds = (minutes - floor(minutes )) * 60;
+    return QString("%1° ").arg(floor(degree))
+        + (minutes < 10 ? "0" : "") + QString("%1'").arg(floor(minutes))
+        + (seconds < 10 ? "0" : "") + toFixed(seconds, 2) ;
+}
+
+QString Settings::formatDegreeLikeGeocaching(double degree){
+    double minutes = (degree - floor(degree)) * 60;
+    return QString("%1°").arg(floor(degree))
+        + (minutes < 10 ? "0" : "") + toFixed(minutes,4);
+}
+
+QString Settings::formatSpeed(double speeedMPS){
+    if (speeedMPS < 0)
+        return "?";
+
+    if (_units == UNITS_IMPERIAL){
+        /* FIXME: I'am not sure that it is right */
+        return QString("%1").arg(qRound(speeedMPS * 2.237)) + " MPH";
+    }
+    if (_units == UNITS_METRIC){
+        return QString("%1").arg(qRound(speeedMPS * 3.6)) + " km/h";
+    }
+    return QString("%1").arg(floor(speeedMPS)) + " m/s";
+}
+
+QString Settings::toFixed(double radix, int decimals){
+    QLocale loc = QLocale::system(); // current locale
+    //return QString("%1").arg(radix, 0, 'f', decimals);
+    return loc.toString(radix, 'f', decimals);
+}
